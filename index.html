@@ -57,7 +57,6 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            flex-direction: column;
         }
 
         .container {
@@ -65,13 +64,8 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
+            width: 90%;
             max-width: 1000px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            box-sizing: border-box;
         }
 
         table {
@@ -136,8 +130,8 @@
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
-                width: 100%;
-                max-width: 100%;
+                width: 95%;
+                overflow-x: auto;
             }
 
             table {
@@ -207,25 +201,25 @@
                     <th>DS</th>
                     <th>Oral</th>
                     <th>Moyenne</th>
-                    <th>Contribution</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
         <button onclick="calculerMoyenne()">Calculer</button>
         <div id="result"></div>
+        <div id="finalMoyenne"></div> <!-- Display final average -->
     </div>
 
     <script>
         const subjects = [
             { name: "Principe de Gestion", coeff: 2.5 },
             { name: "Comptabilité", coeff: 2.5 },
-            { name: "Math Analyse", coeff: 2.5 },
             { name: "Microéconomie", coeff: 2.5 },
-            { name: "Math Fin", coeff: 1.5 },
-            { name: "Compétences Digitales", coeff: 1.5 },
+            { name: "Math Analyse", coeff: 2.5 },
             { name: "Droit", coeff: 1 },
-            { name: "Compétences Linguistiques", coeff: 1 }
+            { name: "Math Fin", coeff: 1.5 },
+            { name: "Compétences Linguistiques", coeff: 1 },
+            { name: "Compétences Digitales", coeff: 1.5 }
         ];
 
         const weights = {
@@ -234,11 +228,22 @@
             oral: 0.1
         };
 
-        // Create dynamic inputs
+        const orderedSubjects = [
+            "Principe de Gestion",
+            "Comptabilité",
+            "Microéconomie",
+            "Math Analyse",
+            "Droit",
+            "Math Fin",
+            "Compétences Linguistiques",
+            "Compétences Digitales"
+        ];
+
         const subjectsContainer = document.querySelector("#subjects tbody");
         const fragment = document.createDocumentFragment();
 
-        subjects.forEach(subject => {
+        orderedSubjects.forEach(subjectName => {
+            const subject = subjects.find(sub => sub.name === subjectName);
             const row = document.createElement("tr");
 
             const createCell = (text, label) => {
@@ -248,10 +253,8 @@
                 return cell;
             };
 
-            // Subject name
             row.appendChild(createCell(subject.name, 'Matière'));
 
-            // Examen input
             const inputExamen = document.createElement("input");
             inputExamen.type = "number";
             inputExamen.placeholder = "0-20";
@@ -260,7 +263,6 @@
             inputExamen.dataset.type = "examen";
             row.appendChild(createCell('', 'Examen')).appendChild(inputExamen);
 
-            // DS input
             const inputDS = document.createElement("input");
             inputDS.type = "number";
             inputDS.placeholder = "0-20";
@@ -269,7 +271,6 @@
             inputDS.dataset.type = "ds";
             row.appendChild(createCell('', 'DS')).appendChild(inputDS);
 
-            // Oral input
             const inputOral = document.createElement("input");
             inputOral.type = "number";
             inputOral.placeholder = "0-20";
@@ -278,19 +279,15 @@
             inputOral.dataset.type = "oral";
             row.appendChild(createCell('', 'Oral')).appendChild(inputOral);
 
-            // Average and contribution cells
             row.appendChild(createCell('', 'Moyenne'));
-            row.appendChild(createCell('', 'Contribution'));
-
             fragment.appendChild(row);
         });
 
         subjectsContainer.appendChild(fragment);
 
-        // Calculation function
         function calculerMoyenne() {
-            let totalPoints = 0;
-            let totalCoeffs = 0;
+            let totalMoyenne = 0;
+            let totalCoefficients = 0;
 
             document.querySelectorAll("tr").forEach(row => {
                 const inputs = row.querySelectorAll(".subject-input");
@@ -303,29 +300,37 @@
                     const oral = parseFloat(inputOral.value) || 0;
 
                     const moyenneMatiere = (examen * weights.examen) + (ds * weights.ds) + (oral * weights.oral);
-                    row.querySelector("td:nth-child(5)").textContent = moyenneMatiere.toFixed(2);
+                    const moyenneCell = row.querySelector("td:nth-child(5)");
+                    moyenneCell.textContent = moyenneMatiere.toFixed(2);
 
-                    const contribution = moyenneMatiere * coeff;
-                    row.querySelector("td:nth-child(6)").textContent = contribution.toFixed(2);
+                    // Change color of the average based on value
+                    if (moyenneMatiere < 10) {
+                        moyenneCell.style.color = "red";
+                    } else {
+                        moyenneCell.style.color = "green";
+                    }
 
-                    totalPoints += contribution;
-                    totalCoeffs += coeff;
+                    // Calculate total moyenne and total coefficients for final average
+                    totalMoyenne += moyenneMatiere * coeff;
+                    totalCoefficients += coeff;
                 }
             });
 
-            const moyenneFinale = totalPoints / totalCoeffs;
-            const validation = moyenneFinale >= 10 ? "✅ Validé" : "❌ Non Validé";
-            document.getElementById("result").innerHTML = `Moyenne du semestre : ${moyenneFinale.toFixed(2)} - ${validation}`;
+            // Final average
+            const finalAverage = totalMoyenne / totalCoefficients;
+            const finalMoyenneCell = document.querySelector("#finalMoyenne");
+            finalMoyenneCell.textContent = `Moyenne Finale: ${finalAverage.toFixed(2)}`;
+
+            // Change color of final average based on value
+            finalMoyenneCell.style.color = finalAverage < 10 ? "red" : "green";
         }
 
-        // Input validation
         document.querySelectorAll(".subject-input").forEach(input => {
             input.addEventListener("input", () => {
                 input.style.borderColor = (input.value < 0 || input.value > 20) ? "red" : "";
             });
         });
 
-        // Save/Load data
         function saveData() {
             const data = {};
             document.querySelectorAll(".subject-input").forEach(input => {
@@ -343,7 +348,6 @@
             }
         }
 
-        // Auto-save every 5 seconds
         setInterval(saveData, 5000);
         window.onload = loadData;
     </script>
