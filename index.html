@@ -4,27 +4,300 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculateur de Moyenne</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 80px;
+        }
+
+        input:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                width: 95%;
+                overflow-x: auto;
+            }
+
+            table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tr {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 10px;
+            }
+
+            td {
+                border: none;
+                border-bottom: 1px solid #eee;
+                padding: 8px 15px 8px 40%;
+                position: relative;
+                min-height: 40px;
+                text-align: right;
+            }
+
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 40%;
+                font-weight: bold;
+                text-align: left;
+            }
+
+            input {
+                width: 100%;
+                max-width: 120px;
+                margin: 2px 0;
+                padding: 10px;
+            }
+
+            button {
+                padding: 15px;
+                font-size: 16px;
+            }
+
+            #result {
+                font-size: 18px;
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Calculateur de Moyenne</h2>
-        <table>
+        <table id="subjects">
             <thead>
                 <tr>
                     <th>Matière</th>
                     <th>Examen</th>
                     <th>DS</th>
                     <th>Oral</th>
+                    <th>Moyenne</th>
+                    <th>Contribution</th>
                 </tr>
             </thead>
-            <tbody id="subjects">
-                <!-- Subjects will be added dynamically by JavaScript -->
-            </tbody>
+            <tbody></tbody>
         </table>
         <button onclick="calculerMoyenne()">Calculer</button>
         <div id="result"></div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        const subjects = [
+            { name: "Principe de Gestion", coeff: 2.5 },
+            { name: "Comptabilité", coeff: 2.5 },
+            { name: "Math Analyse", coeff: 2.5 },
+            { name: "Microéconomie", coeff: 2.5 },
+            { name: "Math Fin", coeff: 1.5 },
+            { name: "Compétences Digitales", coeff: 1.5 },
+            { name: "Droit", coeff: 1 },
+            { name: "Compétences Linguistiques", coeff: 1 }
+        ];
+
+        const weights = {
+            examen: 0.7,
+            ds: 0.2,
+            oral: 0.1
+        };
+
+        // Create dynamic inputs
+        const subjectsContainer = document.querySelector("#subjects tbody");
+        const fragment = document.createDocumentFragment();
+
+        subjects.forEach(subject => {
+            const row = document.createElement("tr");
+
+            const createCell = (text, label) => {
+                const cell = document.createElement("td");
+                cell.textContent = text;
+                cell.setAttribute('data-label', label);
+                return cell;
+            };
+
+            // Subject name
+            row.appendChild(createCell(subject.name, 'Matière'));
+
+            // Examen input
+            const inputExamen = document.createElement("input");
+            inputExamen.type = "number";
+            inputExamen.placeholder = "0-20";
+            inputExamen.classList.add("subject-input");
+            inputExamen.dataset.coeff = subject.coeff;
+            inputExamen.dataset.type = "examen";
+            row.appendChild(createCell('', 'Examen')).appendChild(inputExamen);
+
+            // DS input
+            const inputDS = document.createElement("input");
+            inputDS.type = "number";
+            inputDS.placeholder = "0-20";
+            inputDS.classList.add("subject-input");
+            inputDS.dataset.coeff = subject.coeff;
+            inputDS.dataset.type = "ds";
+            row.appendChild(createCell('', 'DS')).appendChild(inputDS);
+
+            // Oral input
+            const inputOral = document.createElement("input");
+            inputOral.type = "number";
+            inputOral.placeholder = "0-20";
+            inputOral.classList.add("subject-input");
+            inputOral.dataset.coeff = subject.coeff;
+            inputOral.dataset.type = "oral";
+            row.appendChild(createCell('', 'Oral')).appendChild(inputOral);
+
+            // Average and contribution cells
+            row.appendChild(createCell('', 'Moyenne'));
+            row.appendChild(createCell('', 'Contribution'));
+
+            fragment.appendChild(row);
+        });
+
+        subjectsContainer.appendChild(fragment);
+
+        // Calculation function
+        function calculerMoyenne() {
+            let totalPoints = 0;
+            let totalCoeffs = 0;
+
+            document.querySelectorAll("tr").forEach(row => {
+                const inputs = row.querySelectorAll(".subject-input");
+                if (inputs.length > 0) {
+                    const [inputExamen, inputDS, inputOral] = inputs;
+                    const coeff = parseFloat(inputExamen.dataset.coeff);
+
+                    const examen = parseFloat(inputExamen.value) || 0;
+                    const ds = parseFloat(inputDS.value) || 0;
+                    const oral = parseFloat(inputOral.value) || 0;
+
+                    const moyenneMatiere = (examen * weights.examen) + (ds * weights.ds) + (oral * weights.oral);
+                    row.querySelector("td:nth-child(5)").textContent = moyenneMatiere.toFixed(2);
+
+                    const contribution = moyenneMatiere * coeff;
+                    row.querySelector("td:nth-child(6)").textContent = contribution.toFixed(2);
+
+                    totalPoints += contribution;
+                    totalCoeffs += coeff;
+                }
+            });
+
+            const moyenneFinale = totalPoints / totalCoeffs;
+            const validation = moyenneFinale >= 10 ? "✅ Validé" : "❌ Non Validé";
+            document.getElementById("result").innerHTML = `Moyenne du semestre : ${moyenneFinale.toFixed(2)} - ${validation}`;
+        }
+
+        // Input validation
+        document.querySelectorAll(".subject-input").forEach(input => {
+            input.addEventListener("input", () => {
+                input.style.borderColor = (input.value < 0 || input.value > 20) ? "red" : "";
+            });
+        });
+
+        // Save/Load data
+        function saveData() {
+            const data = {};
+            document.querySelectorAll(".subject-input").forEach(input => {
+                data[input.dataset.type] = input.value;
+            });
+            localStorage.setItem('semesterData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const savedData = JSON.parse(localStorage.getItem('semesterData'));
+            if (savedData) {
+                document.querySelectorAll(".subject-input").forEach(input => {
+                    input.value = savedData[input.dataset.type] || '';
+                });
+            }
+        }
+
+        // Auto-save every 5 seconds
+        setInterval(saveData, 5000);
+        window.onload = loadData;
+    </script>
 </body>
 </html>
