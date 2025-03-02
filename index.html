@@ -9,18 +9,18 @@
 <body>
     <div class="container">
         <h2>Calculateur de Moyenne</h2>
-        <table id="subjects">
+        <table>
             <thead>
                 <tr>
                     <th>Matière</th>
                     <th>Examen</th>
                     <th>DS</th>
                     <th>Oral</th>
-                    <th>Moyenne</th>
-                    <th>Contribution</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="subjects">
+                <!-- Subjects will be added dynamically by JavaScript -->
+            </tbody>
         </table>
         <button onclick="calculerMoyenne()">Calculer</button>
         <div id="result"></div>
